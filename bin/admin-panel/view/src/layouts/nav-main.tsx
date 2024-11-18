@@ -5,13 +5,15 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { isEmpty } from 'lodash'
+import { useMenu } from '@/hooks'
+import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
 type Props = {
@@ -27,21 +29,30 @@ type Props = {
 }
 
 export const NavMain: React.FC<Props> = ({ items }) => {
+  const { isActive } = useMenu()
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <Collapsible key={item.title} asChild defaultOpen className="group/collapsible">
+          <Collapsible key={item.title} asChild>
             <SidebarMenuItem>
-              {!isEmpty(item.items) ? (
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                className={cn(isActive?.url === item?.url ? 'bg-sidebar-accent' : '')}
+              >
+                <Link to={item.url}>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+              {item.items?.length ? (
                 <>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                    </SidebarMenuButton>
+                    <SidebarMenuAction className="data-[state=open]:rotate-90">
+                      <ChevronRight />
+                    </SidebarMenuAction>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
@@ -57,14 +68,7 @@ export const NavMain: React.FC<Props> = ({ items }) => {
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </>
-              ) : (
-                <SidebarMenuButton asChild tooltip={item.title}>
-                  <Link to={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              )}
+              ) : null}
             </SidebarMenuItem>
           </Collapsible>
         ))}

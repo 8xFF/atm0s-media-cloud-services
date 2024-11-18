@@ -1,3 +1,4 @@
+import { find } from 'lodash'
 import {
   AlignHorizontalDistributeCenterIcon,
   ArrowLeftRightIcon,
@@ -5,12 +6,13 @@ import {
   ChartPieIcon,
   CreditCardIcon,
   Settings2Icon,
-  UsersIcon
+  UsersIcon,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 
 export const useMenu = () => {
+  const location = useLocation()
   const params = useParams()
   const projectUrl = useMemo(() => `/projects/${params?.id}`, [params?.id])
   const menu = {
@@ -64,7 +66,15 @@ export const useMenu = () => {
       },
     ],
   }
+
+  const isActive = useMemo(() => {
+    return find(menu.navMain, (item) =>
+      item.url !== '/' ? location.pathname.includes(item.url) : item.url === location.pathname
+    )
+  }, [location.pathname, menu.navMain])
+
   return {
     menu,
+    isActive,
   }
 }

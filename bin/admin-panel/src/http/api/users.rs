@@ -1,13 +1,14 @@
-use clerk_rs::apis::users_api::User;
-use poem::{get, handler, web::Data, IntoResponse, Route};
+use poem::{get, handler, web::Data, Error, IntoResponse, Route};
+use reqwest::StatusCode;
 
 use crate::http::{middleware::clerk_auth::ClerkUserId, HttpContext};
 
 #[handler]
 pub async fn get_me(data: Data<&HttpContext>, user_id: ClerkUserId) -> impl IntoResponse {
     async fn process(data: Data<&HttpContext>, user_id: String) -> anyhow::Result<clerk_rs::models::User> {
-        match User::get_user(&data.clerk_client, user_id.as_str()).await {
-            Ok(user) => Ok(user),
+        match data.clerk_user_service.get_user_by_id(&user_id).await {
+            Ok(Some(user)) => Ok(user),
+            Ok(None) => anyhow::bail!(Error::from_string("user not found".to_string(), StatusCode::NOT_FOUND)),
             Err(e) => anyhow::bail!(e),
         }
     }

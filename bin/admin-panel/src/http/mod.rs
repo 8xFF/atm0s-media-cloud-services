@@ -20,6 +20,8 @@ use poem::{
 };
 use view::build_frontend_route;
 
+use crate::services::clerk_user::ClerkUserService;
+
 #[derive(Clone)]
 pub struct HttpCfg {
     pub cluster_secret: String,
@@ -31,7 +33,7 @@ pub struct HttpCfg {
 pub struct HttpContext {
     pub db: Arc<dyn welds::Client>,
     pub http_client: reqwest::Client,
-    pub clerk_client: Clerk,
+    pub clerk_user_service: ClerkUserService,
     pub clerk_authorizer: ClerkAuthorizer<MemoryCacheJwksProvider>,
     pub cfg: HttpCfg,
 }
@@ -45,7 +47,7 @@ pub async fn run_http(port: u16, db: Arc<dyn welds::Client>, cfg: HttpCfg) -> an
     let ctx = HttpContext {
         db,
         http_client: reqwest::Client::new(),
-        clerk_client,
+        clerk_user_service: ClerkUserService::new(clerk_client),
         clerk_authorizer,
         cfg: cfg.clone(),
     };

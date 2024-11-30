@@ -46,9 +46,8 @@ pub async fn sync_projects(query: Query<SyncProjectQuery>, data: Data<&HttpConte
             data.db.clone(),
             ProjectFilterDto {
                 id: None,
-                owner: None,
+                workspace_id: None,
                 name: None,
-                user_id: None,
             },
             None,
             None,

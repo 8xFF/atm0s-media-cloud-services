@@ -16,6 +16,8 @@ pub fn build_frontend_route() -> Route {
             .finish(); // Finishes constructing the configuration
 
         log::info!("Running in development mode, starting Vite dev server...");
+        #[allow(unknown_lints)]
+        #[allow(clippy::zombie_processes)]
         std::process::Command::new("pnpm")
             .current_dir("./view/")
             .args(["run", "dev"])

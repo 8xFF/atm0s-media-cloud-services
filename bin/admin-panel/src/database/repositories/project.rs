@@ -2,24 +2,20 @@ use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::database::models::{
-    project::{Project, ProjectCodecs, ProjectOptions},
-    project_member::ProjectMember,
-};
+use crate::database::models::project::{Project, ProjectCodecs, ProjectOptions};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ProjectFilterDto {
     pub id: Option<String>,
-    pub owner: Option<String>,
+    pub workspace_id: Option<String>,
     pub name: Option<String>,
-    pub user_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateProjectDto {
     pub name: String,
-    pub owner: String,
     pub secret: String,
+    pub workspace_id: String,
     pub options: Option<ProjectOptions>,
     pub codecs: Option<ProjectCodecs>,
 }
@@ -34,7 +30,7 @@ pub struct UpdateProjectDto {
 pub async fn create_project(client: Arc<dyn welds::Client>, dto: CreateProjectDto) -> anyhow::Result<Project> {
     let mut project = Project::new();
     project.name = dto.name.clone();
-    project.owner = dto.owner.clone();
+    project.workspace_id = dto.workspace_id.clone();
     project.secret = dto.secret.clone();
     project.options = dto.options.map(|o| serde_json::to_value(o).unwrap());
     project.codecs = dto.codecs.map(|o| serde_json::to_value(o).unwrap());
@@ -77,11 +73,12 @@ pub async fn get_project(client: Arc<dyn welds::Client>, filter: ProjectFilterDt
 
 pub async fn update_project(
     client: Arc<dyn welds::Client>,
-    id: String,
+    filter: ProjectFilterDto,
     dto: UpdateProjectDto,
 ) -> anyhow::Result<Project> {
-    let project = Project::find_by_id(client.as_ref(), id).await?;
-    match project {
+    let query = build_query(filter);
+    let mut res = query.run(client.as_ref()).await?;
+    match res.pop() {
         Some(mut project) => {
             if let Some(name) = dto.name {
                 project.name = name;
@@ -116,16 +113,12 @@ fn build_query(filter: ProjectFilterDto) -> welds::query::builder::QueryBuilder<
         query = query.where_col(|c| c.id.equal(id.clone()));
     }
 
-    if let Some(owner) = filter.owner {
-        query = query.where_col(|c| c.owner.equal(owner.clone()));
-    }
     if let Some(name) = filter.name {
         query = query.where_col(|c| c.name.equal(name.clone()));
     }
-    if let Some(user_id) = filter.user_id {
-        let member_query = ProjectMember::where_col(|p| p.user_id.equal(user_id.clone()));
-
-        query = query.where_relation(|o| o.member, member_query);
+    if let Some(workspace_id) = filter.workspace_id {
+        query = query.where_col(|c| c.workspace_id.equal(workspace_id.clone()));
     }
+
     query
 }

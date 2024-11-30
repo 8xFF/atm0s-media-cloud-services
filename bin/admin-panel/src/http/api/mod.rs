@@ -1,7 +1,7 @@
 mod configs;
-mod projects;
 mod sync;
 mod users;
+mod workspace;
 
 use poem::{get, handler, EndpointExt, IntoResponse, Route};
 use serde::Serialize;
@@ -29,13 +29,13 @@ pub fn build_route(ctx: HttpContext) -> Route {
     Route::new()
         .at("/health", get(health_check))
         .at("/sync/projects", get(sync::sync_projects))
+        .nest(
+            "/workspaces",
+            workspace::build_route(ctx.clone()).with(middleware::clerk_auth::ClerkAuthMiddleware::new(ctx.clone())),
+        )
         .nest("/configs", configs::build_route())
         .nest(
             "/users",
             users::build_route().with(middleware::clerk_auth::ClerkAuthMiddleware::new(ctx.clone())),
-        )
-        .nest(
-            "/projects",
-            projects::build_route().with(middleware::clerk_auth::ClerkAuthMiddleware::new(ctx.clone())),
         )
 }

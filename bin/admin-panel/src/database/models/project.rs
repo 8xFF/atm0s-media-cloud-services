@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use welds::{errors::Result, WeldsModel};
 
-use super::project_member::ProjectMember;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,12 +46,11 @@ impl Default for ProjectCodecs {
 #[welds(db(Sqlite, Postgres))]
 #[welds(BeforeCreate(before_create))]
 #[welds(BeforeUpdate(before_update))]
-#[welds(HasMany(member, ProjectMember, "project_id"))]
 pub struct Project {
     #[welds(primary_key)]
     pub id: String,
     pub name: String,
-    pub owner: String,
+    pub workspace_id: String,
     pub secret: String,
     pub options: Option<serde_json::Value>,
     pub codecs: Option<serde_json::Value>,

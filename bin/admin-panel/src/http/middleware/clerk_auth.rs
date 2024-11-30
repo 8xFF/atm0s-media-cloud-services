@@ -6,7 +6,7 @@ use reqwest::StatusCode;
 
 use crate::http::HttpContext;
 
-const CLERK_USER_ID: &str = "x-clerk-user-id";
+pub(crate) const CLERK_USER_ID: &str = "x-clerk-user-id";
 
 pub struct ClerkUserId(String);
 
@@ -35,7 +35,7 @@ pub struct RequestWrapper<'a> {
     pub req: &'a Request,
 }
 
-impl<'a> ClerkRequest for RequestWrapper<'a> {
+impl ClerkRequest for RequestWrapper<'_> {
     fn get_header(&self, key: &str) -> Option<String> {
         self.req
             .headers()

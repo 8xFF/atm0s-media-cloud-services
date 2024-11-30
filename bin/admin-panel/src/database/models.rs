@@ -1,2 +1,4 @@
 pub mod project;
-pub mod project_member;
+pub mod workspace;
+pub mod workspace_invite;
+pub mod workspace_member;
